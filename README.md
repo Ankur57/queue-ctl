@@ -70,7 +70,7 @@ Working cli demo link : https://drive.google.com/file/d/1NMBYuSnVGRSfzx3GaatJvUm
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/<your-username>/queuectl.git
+git clone https://github.com/Ankur57/queue-ctl.git
 cd queuectl
 
 # 2. Install dependencies

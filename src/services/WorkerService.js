@@ -3,19 +3,21 @@ import Worker from "../workers/Worker.js";
 import JobRepository from "../repository/JobRepository.js";
 import { JOB_STATE } from "../core/constants.js";
 import RetryManager from "../queue/RetryManager.js";
+import { config } from "../config/config.js";
 
 class WorkerService {
-  async start() {
-    const workerId = `worker-${Date.now()}`;
+  constructor() {
+    this.running = true;
+  }
 
+  async process(workerId) {
     const job = QueueManager.getNextJob(workerId);
 
     if (!job) {
-      console.log("No pending jobs.");
-      return;
+      return false;
     }
 
-    console.log(`Processing ${job.id}`);
+    console.log(`[${workerId}] Processing ${job.id}`);
 
     const result = await Worker.execute(job);
 
@@ -29,14 +31,54 @@ class WorkerService {
         updated_at: new Date().toISOString(),
       });
 
-      console.log(`✅ ${job.id} completed successfully.`);
+      console.log(`[${workerId}] ✅ ${job.id} completed.`);
     } else {
-      RetryManager.retry(
-        job,
-        result.error,
-        result.exitCode
+      RetryManager.retry(job, result.error, result.exitCode);
+    }
+
+    return true;
+  }
+
+async workerLoop(workerId) {
+  let waiting = false;
+
+  while (this.running) {
+    const processed = await this.process(workerId);
+
+    if (processed) {
+      waiting = false;
+      continue;
+    }
+
+    if (!waiting) {
+      console.log(`[${workerId}] Waiting for jobs...`);
+      waiting = true;
+    }
+
+    await new Promise((resolve) =>
+      setTimeout(resolve, config.POLLING_INTERVAL)
+    );
+  }
+
+  console.log(`[${workerId}] stopped.`);
+}
+
+  async start(workerCount = 1) {
+    console.log(`Starting ${workerCount} worker(s)...`);
+
+    const workers = [];
+
+    for (let i = 1; i <= workerCount; i++) {
+      workers.push(
+        this.workerLoop(`worker-${i}`)
       );
     }
+
+    await Promise.all(workers);
+  }
+
+  stop() {
+    this.running = false;
   }
 }
 

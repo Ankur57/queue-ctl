@@ -4,3 +4,4 @@ logs
 coverage
 .env
 .DS_Store
+.queuectl.pid

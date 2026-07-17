@@ -119,11 +119,12 @@ index.js
 ├── cli/commands/list.js    ──▶ services/JobService.js
 ├── cli/commands/show.js    ──▶ services/JobService.js
 ├── cli/commands/worker.js  ──▶ services/WorkerService.js
-└── cli/commands/dlq.js     ──▶ services/DLQService.js
+├── cli/commands/dlq.js     ──▶ services/DLQService.js
+├── cli/commands/status.js  ──▶ services/JobService.js
+└── cli/commands/config.js  ──▶ services/ConfigService.js
 
 services/JobService.js      ──▶ repository/JobRepository.js
                             ──▶ models/Job.js
-                            ──▶ config/config.js
 
 services/WorkerService.js   ──▶ queue/QueueManager.js
                             ──▶ queue/RetryManager.js

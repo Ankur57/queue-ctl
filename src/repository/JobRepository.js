@@ -155,6 +155,14 @@ class JobRepository {
       id
     );
   }
+
+  countByState() {
+    return db.prepare('SELECT state, COUNT(*) as count FROM jobs GROUP BY state').all();
+  }
+
+  listByState(state) {
+    return db.prepare('SELECT * FROM jobs WHERE state = ? ORDER BY created_at ASC').all(state);
+  }
 }
 
 export default new JobRepository();

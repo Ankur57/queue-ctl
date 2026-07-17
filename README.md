@@ -12,10 +12,11 @@ Working cli demo link : https://drive.google.com/file/d/1NMBYuSnVGRSfzx3GaatJvUm
 - [Setup Instructions](#setup-instructions)
 - [Usage Examples](#usage-examples)
   - [Enqueue a Job](#1-enqueue-a-job)
-  - [List All Jobs](#2-list-all-jobs)
+  - [List Jobs](#2-list-jobs)
   - [Show Job Details](#3-show-job-details)
-  - [Start Workers](#4-start-workers)
-  - [Dead Letter Queue](#5-dead-letter-queue-dlq)
+  - [Start/Stop Workers](#4-startstop-workers)
+  - [Status & Config](#5-status--config)
+  - [Dead Letter Queue](#6-dead-letter-queue-dlq)
 - [Architecture Overview](#architecture-overview)
   - [Project Structure](#project-structure)
   - [Layered Architecture](#layered-architecture)
@@ -43,6 +44,7 @@ Working cli demo link : https://drive.google.com/file/d/1NMBYuSnVGRSfzx3GaatJvUm
 - ✅ **Concurrency-safe** job acquisition via SQLite transactions
 - ✅ **Graceful shutdown** (finish current job before exiting)
 - ✅ **Structured logging** to both console and file (`logs/app.log`)
+- ✅ **Configuration management** via CLI (persisted in database)
 - ✅ **Clean CLI interface** with help texts for every command
 
 ---
@@ -134,12 +136,16 @@ queuectl enqueue --id fail1 --command "invalidcommand123"
 
 ---
 
-### 2. List All Jobs
+### 2. List Jobs
 
-View all jobs in the system and their current states.
+View jobs in the system. You can optionally filter by state (`pending`, `processing`, `completed`, `failed`, `dead`).
 
 ```bash
+# List all jobs
 queuectl list
+
+# List only pending jobs
+queuectl list --state pending
 ```
 
 **Output:**
@@ -184,7 +190,7 @@ queuectl show --id job1
 
 ---
 
-### 4. Start Workers
+### 4. Start/Stop Workers
 
 Start one or more worker processes to pick up and execute pending jobs.
 
@@ -196,30 +202,37 @@ queuectl worker start
 queuectl worker start --count 3
 ```
 
-**Output:**
+**Graceful Shutdown:** You can stop running workers gracefully either by pressing `Ctrl+C` or by using the stop command from another terminal:
 
+```bash
+queuectl worker stop
 ```
-🚀 Starting 3 worker(s)...
-[worker-1] Waiting for jobs...
-[worker-2] Waiting for jobs...
-[worker-3] Waiting for jobs...
-[worker-1] Processing job1
-[worker-1] ✅ job1 completed
+Workers will finish their current job before exiting.
+
+---
+
+### 5. Status & Config
+
+**View System Status:**
+Check the summary of job states and active workers.
+
+```bash
+queuectl status
 ```
 
-**Graceful Shutdown:** Press `Ctrl+C` to stop all workers gracefully. Workers will finish their current job before exiting.
+**Manage Configuration:**
+The system uses persistent configuration stored in the database.
 
-```
-^C
-⏳ Shutting down workers gracefully...
-[worker-1] stopped.
-[worker-2] stopped.
-[worker-3] stopped.
+```bash
+queuectl config list
+queuectl config set max-retries 5
+queuectl config get backoff-base
+queuectl config reset max-retries
 ```
 
 ---
 
-### 5. Dead Letter Queue (DLQ)
+### 6. Dead Letter Queue (DLQ)
 
 Jobs that fail after exhausting all retries are moved to the Dead Letter Queue.
 
@@ -505,7 +518,7 @@ The DLQ is implemented as a **virtual queue** — jobs in the same `jobs` table 
 
 ### Graceful Shutdown
 
-1. User presses `Ctrl+C` → `SIGINT` signal is caught
+1. User presses `Ctrl+C` → `SIGINT` signal is caught, OR user runs `queuectl worker stop` → reads `.queuectl.pid` and sends `SIGTERM`.
 2. Signal handler calls `WorkerService.stop()` → sets `running = false`
 3. Each worker loop checks `this.running` at the top of its while loop
 4. Workers finish their **current job** (if any) before exiting
@@ -517,14 +530,15 @@ This ensures no job is left in a half-processed state.
 
 ## Configuration
 
-Configuration is centralized in `src/config/config.js`:
+Configuration is persistent and managed via the `queuectl config` command. Settings are stored in the database's `config` table and fallback to defaults if not set.
 
 | Parameter              | Default | Description                              |
 | ---------------------- | ------- | ---------------------------------------- |
-| `DATABASE_NAME`        | `queuectl.db` | SQLite database filename           |
-| `DEFAULT_MAX_RETRIES`  | `3`     | Max retry attempts per job               |
-| `POLLING_INTERVAL`     | `3000`  | Worker polling interval in milliseconds  |
-| `BACKOFF.BASE_DELAY_SECONDS` | `5` | Base delay for exponential backoff (seconds) |
+| `max-retries`          | `3`     | Max retry attempts per job               |
+| `polling-interval`     | `3000`  | Worker polling interval in milliseconds  |
+| `backoff-base`         | `5`     | Base delay for exponential backoff (seconds) |
+
+*Note: The database filename defaults to `queuectl.db`, but can be overridden with the `QUEUECTL_DB_PATH` environment variable (e.g., for testing with `:memory:`).*
 
 ---
 
@@ -659,9 +673,12 @@ node src/index.js show --id fail1
 | Command                              | Description                          |
 | ------------------------------------ | ------------------------------------ |
 | `queuectl enqueue --id <id> --command <cmd>` | Add a new job to the queue   |
-| `queuectl list`                      | List all jobs with their states      |
+| `queuectl list [--state <state>]`     | List jobs (optionally filtered by state) |
 | `queuectl show --id <id>`           | Show detailed info for a specific job |
+| `queuectl status`                   | Show summary of job states and active workers |
+| `queuectl config <list/set/get>`    | Manage persistent configuration      |
 | `queuectl worker start [--count N]` | Start N workers (default: 1)         |
+| `queuectl worker stop`              | Stop running workers gracefully      |
 | `queuectl dlq list`                 | List all dead-letter jobs            |
 | `queuectl dlq retry --id <id>`      | Re-queue a dead job for processing   |
 

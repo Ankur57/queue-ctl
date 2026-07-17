@@ -7,6 +7,8 @@ import list from "./cli/commands/list.js";
 import worker from "./cli/commands/worker.js";
 import dlq from "./cli/commands/dlq.js";
 import show from "./cli/commands/show.js";
+import status from "./cli/commands/status.js";
+import configCmd from "./cli/commands/config.js";
 
 const program = new Command();
 
@@ -20,5 +22,7 @@ program.addCommand(list);
 program.addCommand(worker);
 program.addCommand(dlq);
 program.addCommand(show);
+program.addCommand(status);
+program.addCommand(configCmd);
 
 program.parse();

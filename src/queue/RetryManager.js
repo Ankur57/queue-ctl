@@ -1,5 +1,6 @@
 import JobRepository from "../repository/JobRepository.js";
-import { JOB_STATE, BACKOFF } from "../core/constants.js";
+import { JOB_STATE } from "../core/constants.js";
+import ConfigService from "../services/ConfigService.js";
 import logger from "../logger/logger.js";
 
 class RetryManager {
@@ -25,8 +26,11 @@ class RetryManager {
       return;
     }
 
+    // Read backoff base from dynamic config (DB or default)
+    const backoffBase = ConfigService.get("backoff-base");
+
     const delay =
-      BACKOFF.BASE_DELAY_SECONDS *
+      backoffBase *
       Math.pow(2, attempts - 1);
 
     const retryAt = new Date(

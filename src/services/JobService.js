@@ -1,7 +1,7 @@
 import JobRepository from "../repository/JobRepository.js";
 import Job from "../models/Job.js";
 import { JOB_STATE } from "../core/constants.js";
-import { config } from "../config/config.js";
+import ConfigService from "./ConfigService.js";
 import { ValidationError } from "../core/errors.js";
 import logger from "../logger/logger.js";
 
@@ -24,7 +24,7 @@ class JobService {
       command,
       state: JOB_STATE.PENDING,
       attempts: 0,
-      max_retries: config.DEFAULT_MAX_RETRIES,
+      max_retries: ConfigService.get("max-retries"),
       next_retry_at: now,
       created_at: now,
       updated_at: now,

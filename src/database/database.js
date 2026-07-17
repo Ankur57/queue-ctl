@@ -1,7 +1,8 @@
 import Database from "better-sqlite3";
 import { config } from "../config/config.js";
 
-const db = new Database(config.DATABASE_NAME);
+const dbPath = process.env.QUEUECTL_DB_PATH || config.DATABASE_NAME;
+const db = new Database(dbPath);
 
 db.exec(`
 CREATE TABLE IF NOT EXISTS jobs (
@@ -18,6 +19,11 @@ CREATE TABLE IF NOT EXISTS jobs (
     exit_code INTEGER,
     created_at INTEGER,
     updated_at INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS config (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
 );
 `);
 

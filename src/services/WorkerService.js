@@ -3,7 +3,7 @@ import Worker from "../workers/Worker.js";
 import JobRepository from "../repository/JobRepository.js";
 import { JOB_STATE } from "../core/constants.js";
 import RetryManager from "../queue/RetryManager.js";
-import { config } from "../config/config.js";
+import ConfigService from "./ConfigService.js";
 import logger from "../logger/logger.js";
 
 class WorkerService {
@@ -28,7 +28,7 @@ class WorkerService {
       JobRepository.update(job.id, {
         state: JOB_STATE.COMPLETED,
         output: result.output,
-        exit_code: result.exitCode,
+        exit_code: result.exit_code,
         locked_by: null,
         locked_at: null,
         updated_at: new Date().toISOString(),
@@ -38,7 +38,7 @@ class WorkerService {
         `[${workerId}] ${job.id} completed`
       );
     } else {
-      RetryManager.retry(job, result.error, result.exitCode);
+      RetryManager.retry(job, result.error, result.exit_code);
     }
 
     return true;
@@ -61,7 +61,7 @@ async workerLoop(workerId) {
     }
 
     await new Promise((resolve) =>
-      setTimeout(resolve, config.POLLING_INTERVAL)
+      setTimeout(resolve, ConfigService.get("polling-interval"))
     );
   }
 

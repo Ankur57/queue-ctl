@@ -1,5 +1,6 @@
 import JobRepository from "../repository/JobRepository.js";
 import { JOB_STATE, BACKOFF } from "../core/constants.js";
+import logger from "../logger/logger.js";
 
 class RetryManager {
   retry(job, error, exitCode) {
@@ -17,7 +18,9 @@ class RetryManager {
         updated_at: new Date().toISOString(),
       });
 
-      console.log(`❌ ${job.id} moved to Dead Letter Queue`);
+      logger.error(
+          `${job.id} moved to Dead Letter Queue`
+      );
 
       return;
     }
@@ -41,8 +44,8 @@ class RetryManager {
       updated_at: new Date().toISOString(),
     });
 
-    console.log(
-      `🔄 ${job.id} scheduled for retry in ${delay} seconds`
+    logger.warn(
+        `${job.id} scheduled for retry in ${delay} seconds`
     );
   }
 }

@@ -3,6 +3,7 @@ import Job from "../models/Job.js";
 import { JOB_STATE } from "../core/constants.js";
 import { config } from "../config/config.js";
 import { ValidationError } from "../core/errors.js";
+import logger from "../logger/logger.js";
 
 class JobService {
   createJob({ id, command }) {
@@ -31,6 +32,8 @@ class JobService {
 
     JobRepository.create(job);
 
+    logger.info(`Job ${job.id} added to queue`);
+
     return job;
   }
 
@@ -43,6 +46,8 @@ class JobService {
   if (!job) {
     throw new ValidationError("Job not found.");
   }
+
+  logger.info(`Job ${job.id} added to queue`);
 
   return job;
 }

@@ -4,6 +4,7 @@ import JobRepository from "../repository/JobRepository.js";
 import { JOB_STATE } from "../core/constants.js";
 import RetryManager from "../queue/RetryManager.js";
 import { config } from "../config/config.js";
+import logger from "../logger/logger.js";
 
 class WorkerService {
   constructor() {
@@ -17,7 +18,9 @@ class WorkerService {
       return false;
     }
 
-    console.log(`[${workerId}] Processing ${job.id}`);
+    logger.info(
+    `[${workerId}] Processing ${job.id}`
+  );
 
     const result = await Worker.execute(job);
 
@@ -31,7 +34,9 @@ class WorkerService {
         updated_at: new Date().toISOString(),
       });
 
-      console.log(`[${workerId}] ✅ ${job.id} completed.`);
+      logger.info(
+        `[${workerId}] ${job.id} completed`
+      );
     } else {
       RetryManager.retry(job, result.error, result.exitCode);
     }

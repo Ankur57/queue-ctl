@@ -5,3 +5,7 @@ export const JOB_STATE = {
   FAILED: "failed",
   DEAD: "dead",
 };
+
+export const BACKOFF = {
+  BASE_DELAY_SECONDS: 5,
+};

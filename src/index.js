@@ -5,6 +5,7 @@ import { Command } from "commander";
 import enqueue from "./cli/commands/enqueue.js";
 import list from "./cli/commands/list.js";
 import worker from "./cli/commands/worker.js";
+import dlq from "./cli/commands/dlq.js";
 
 const program = new Command();
 
@@ -16,5 +17,6 @@ program
 program.addCommand(enqueue);
 program.addCommand(list);
 program.addCommand(worker);
+program.addCommand(dlq);
 
 program.parse();

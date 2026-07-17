@@ -1,7 +1,11 @@
 {
   "name": "queuectl",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "src/index.js",
+  "type": "module",
+  "bin": {
+    "queuectl": "./src/index.js"
+  },
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
@@ -15,6 +19,7 @@
     "chalk": "^5.6.2",
     "commander": "^14.0.3",
     "ora": "^9.4.1",
+    "uuid": "^14.0.1",
     "winston": "^3.19.0",
     "zod": "^4.4.3"
   },

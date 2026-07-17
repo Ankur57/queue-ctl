@@ -37,6 +37,15 @@ class JobService {
   getAllJobs() {
     return JobRepository.listAll();
   }
+  getJob(id) {
+  const job = JobRepository.findById(id);
+
+  if (!job) {
+    throw new ValidationError("Job not found.");
+  }
+
+  return job;
+}
 }
 
 export default new JobService();

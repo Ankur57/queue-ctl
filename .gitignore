@@ -1,5 +1,6 @@
-node_modules/
-*.db
-logs/
-coverage/
+node_modules
+queuectl.db
+logs
+coverage
 .env
+.DS_Store

@@ -40,17 +40,16 @@ class JobService {
   getAllJobs() {
     return JobRepository.listAll();
   }
+
   getJob(id) {
-  const job = JobRepository.findById(id);
+    const job = JobRepository.findById(id);
 
-  if (!job) {
-    throw new ValidationError("Job not found.");
+    if (!job) {
+      throw new ValidationError("Job not found.");
+    }
+
+    return job;
   }
-
-  logger.info(`Job ${job.id} added to queue`);
-
-  return job;
-}
 }
 
 export default new JobService();
